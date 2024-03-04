@@ -2,3 +2,4 @@
 *.j2a
 __pycache__
 *.pyc
+.vs

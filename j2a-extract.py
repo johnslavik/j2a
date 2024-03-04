@@ -32,6 +32,7 @@ cli.add_argument("--palettefile", "-p", default="Diamondus_2.pal", help="Palette
 cli.add_argument("j2afile", help="The J2A file to extract")
 cli.add_argument("--folder", "-f", default="?",
                  help="Where to extract the animation data. Defaults to current working directory.")
+cli.add_argument('--melk', '-m', action='store_true')
 args = cli.parse_args()
 
 # check if all files we need exist and can be opened properly
@@ -47,10 +48,13 @@ for check_file in (source_file, palette_file):
         exit(1)
 
 try:
-    j2afile = J2A(str(source_file), palette=str(palette_file)).read()
+    j2afile = J2A(str(source_file), palette=str(palette_file)).read(args.melk)
 except Exception:
     print("Could not open J2A file %s. Is it a valid J2A file?" % source_file.name)
     exit(1)
+
+if args.melk:
+    j2afile.get_palette() #don't overwrite palettesequence later
 
 # loop through all animations and unpack their frames
 for set_index, set in enumerate(j2afile.sets):
@@ -58,6 +62,11 @@ for set_index, set in enumerate(j2afile.sets):
     set_folder = destination_folder.joinpath("set-%s" % str(set_index).zfill(3))
     if not set_folder.exists():
         os.makedirs(set_folder)
+
+    if args.melk:
+        noalphas = list(set._palette)
+        del noalphas[3::4] #remove every fourth byte
+        j2afile.palettesequence = noalphas #RGBRGBRGB, which is what Pillow wants, instead of RGBARGBARGBA, which is what is stored in the .j2a
 
     for animation_index, animation in enumerate(set.animations):
         print("Unpacking animation %i..." % animation_index)

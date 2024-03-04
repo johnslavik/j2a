@@ -93,7 +93,7 @@ for set_folder in set_folders:
 
         settings_file = settings_file[0]
         with settings_file.open() as settings_input:
-            settings = yaml.load(settings_input)
+            settings = yaml.safe_load(settings_input)
 
         # require at least a 'default' dictionary with all keys, if not we
         # can't properly store the data

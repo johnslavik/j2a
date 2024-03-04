@@ -62,13 +62,16 @@ class J2A:
         pass
 
     class Set(object):
-        __slots__ = ["_chunks", "_samplecount", "samplesbaseindex", "_anims", "_samples"]
+        __slots__ = ["_chunks", "_samplecount", "samplesbaseindex", "_anims", "_samples", "_palette"]
         _Header = misc.NamedStruct("4s|signature/B|animcount/B|samplecount/h|framecount/l|priorsamplecount/l|c1/l|u1/l|c2/l|u2/l|c3/l|u3/l|c4/l|u4")
+        _HeaderMelk = misc.NamedStruct("4s|signature/B|animcount/B|samplecount/h|framecount/l|priorsamplecount/l|c1/l|u1/l|c2/l|u2/l|c3/l|u3/l|c4/l|u4/1024s|palette")
 
         def __init__(self, *pargs, **kwargs):
             if pargs:
                 setheader, self._chunks = pargs
                 self._samplecount = setheader["samplecount"]
+                if "palette" in setheader:
+                    self._palette = setheader["palette"]
                 self.samplesbaseindex = setheader["priorsamplecount"]
             else:
                 self._anims = []
@@ -84,10 +87,11 @@ class J2A:
                 return 0 == len(self._anims) + len(self._samples)
 
         @staticmethod
-        def read(f, crc):
-            chunk = f.read(J2A.Set._Header.size)
+        def read(f, crc, isMelk):
+            thisHeader = J2A.Set._HeaderMelk if isMelk else J2A.Set._Header
+            chunk = f.read(thisHeader.size)
             crc = zlib.crc32(chunk, crc)
-            setheader = J2A.Set._Header.unpack(chunk)
+            setheader = thisHeader.unpack(chunk)
             assert (setheader["signature"], setheader["u1"], setheader["u2"]) == \
                    (b'ANIM', J2A.Animation._Header.size * setheader["animcount"], J2A.Frame._Header.size * setheader["framecount"]), \
                    "header inconsistency"
@@ -501,7 +505,7 @@ class J2A:
         elif delta < 0:
             raise J2AParsingError("File is not a valid J2A file (overlapping sets)")
 
-    def read(self):
+    def read(self, isMelk):
         ''' reads whole J2A file, parses ALIB and ANIM headers and collects all sets '''
         with open(self.filename, "rb") as j2afile:
             # TODO: maybe add a separate check for ALIB version?
@@ -524,7 +528,7 @@ class J2A:
                         self.sets.append(J2A.Set())
                     else:
                         J2A._seek(j2afile, offset)
-                        s, crc = J2A.Set.read(j2afile, crc)
+                        s, crc = J2A.Set.read(j2afile, crc, isMelk)
                         self.sets.append(s)
                 raw = j2afile.read()
                 if raw:
