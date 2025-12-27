@@ -217,7 +217,7 @@ class J2A:
                 if self._samplecount == 0:
                     samplesbaseindex = 0
                 else:
-                    raise J2APackingError(
+                    raise J2A.J2APackingError(
                         "'samplesbaseindex' member must be set when packing a set with samples"
                     )
 
@@ -686,7 +686,7 @@ class J2A:
             b = f.read(delta)
             assert len(b) == delta
         elif delta < 0:
-            raise J2AParsingError("File is not a valid J2A file (overlapping sets)")
+            raise J2A.J2AParsingError("File is not a valid J2A file (overlapping sets)")
 
     def read(self, isMelk):
         """reads whole J2A file, parses ALIB and ANIM headers and collects all sets"""
@@ -750,7 +750,7 @@ class J2A:
         if filename is None:
             filename = self.filename
             if filename is None:
-                raise J2APackingError("no filename specified")
+                raise J2A.J2APackingError("no filename specified")
         self.pack()
         setcount = len(self.sets)
         set_data = [s.serialize(self.config) for s in self.sets]
@@ -772,7 +772,7 @@ class J2A:
             target_crc &= 0xFFFFFFFF
             if (cur_offset, crc) != (target_filesize, target_crc):
                 if target_filesize - cur_offset < 4:
-                    raise J2APackingError(
+                    raise J2A.J2APackingError(
                         "Can't fake filesize and CRC32, obtained size is too large"
                     )
                 extra_data = b"\x00" * (target_filesize - cur_offset - 4)
