@@ -14,12 +14,22 @@ import os
 from j2a import J2A
 from PIL import Image
 
-cli = argparse.ArgumentParser(description=readme, prog="J2A Sheeter", formatter_class=argparse.RawDescriptionHelpFormatter)
-cli.add_argument("--palettefile", "-p", default="Diamondus_2.pal", help="Palette file to use")
+cli = argparse.ArgumentParser(
+    description=readme,
+    prog="J2A Sheeter",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
+cli.add_argument(
+    "--palettefile", "-p", default="Diamondus_2.pal", help="Palette file to use"
+)
 cli.add_argument("j2afile", help="The J2A file to extract")
-cli.add_argument("--folder", "-f", default="?",
-                 help="Where to extract the animation data. Defaults to current working directory.")
-cli.add_argument('--melk', '-m', action='store_true')
+cli.add_argument(
+    "--folder",
+    "-f",
+    default="?",
+    help="Where to extract the animation data. Defaults to current working directory.",
+)
+cli.add_argument("--melk", "-m", action="store_true")
 cli.add_argument("--borderColor", "-b", default="255")
 cli.add_argument("--unusedColor", "-u", default="0")
 cli.add_argument("--style", "-s", default="1")
@@ -39,9 +49,9 @@ palette_file = pathlib.Path(args.palettefile)
 borderColor = borderColorInitial = int(args.borderColor)
 unusedColor = unusedColorInitial = int(args.unusedColor)
 outputStyle = int(args.style)
-#0: save each row as a separate image
-#1: put all rows in the same image, with each row deciding its own frame width/height (default)
-#2: put all rows in the same image, with every frame in every row having the same width/height
+# 0: save each row as a separate image
+# 1: put all rows in the same image, with each row deciding its own frame width/height (default)
+# 2: put all rows in the same image, with every frame in every row having the same width/height
 borderSize = 2
 
 maxTop = 0
@@ -62,6 +72,7 @@ except Exception:
 
 j2afile.get_palette()
 
+
 def convertPToRGBA(oldImage, palette):
     oldData = oldImage.tobytes()
     newData = bytearray(len(oldData) * 4)
@@ -74,19 +85,23 @@ def convertPToRGBA(oldImage, palette):
             newData[newPtr + 3] = 255
         newPtr += 4
     return Image.frombytes("RGBA", oldImage.size, bytes(newData))
-    
+
 
 # loop through all animations and unpack their frames
 for set_index, set in enumerate(j2afile.sets):
     print("Sheeting set %i..." % set_index)
-    filename = pathlib.Path(destination_folder, destination_file_stem + "-" + str(set_index) + ".png")
+    filename = pathlib.Path(
+        destination_folder, destination_file_stem + "-" + str(set_index) + ".png"
+    )
 
     if args.melk:
         noalphas = list(set._palette)
         del noalphas[3::4]
         j2afile.palettesequence = noalphas
 
-    if outputStyle == 2: #get frame size (including hotspot) for every frame in whole animset
+    if (
+        outputStyle == 2
+    ):  # get frame size (including hotspot) for every frame in whole animset
         maxTop = 0
         maxBottom = 0
         maxLeft = 0
@@ -96,12 +111,14 @@ for set_index, set in enumerate(j2afile.sets):
             maxBottom = max(maxBottom, frame.shape[1] + frame.origin[1])
             maxLeft = max(maxLeft, -frame.origin[0])
             maxRight = max(maxRight, frame.shape[0] + frame.origin[0])
-        
+
     sheetRows = []
     imageMode = "P"
     for animation_index, animation in enumerate(set.animations):
         print("Unpacking animation %i..." % animation_index)
-        if outputStyle != 2: #get frame size (including hotspot) for every frame in this animation
+        if (
+            outputStyle != 2
+        ):  # get frame size (including hotspot) for every frame in this animation
             maxTop = 0
             maxBottom = 0
             maxLeft = 0
@@ -117,7 +134,11 @@ for set_index, set in enumerate(j2afile.sets):
         frameHeight = maxTop + maxBottom
         frameWB = frameWidth + borderSize
         frameHB = frameHeight + borderSize
-        sheetRow = Image.new(imageMode, (frameWB * len(animation.frames) - borderSize, frameHeight), borderColor)
+        sheetRow = Image.new(
+            imageMode,
+            (frameWB * len(animation.frames) - borderSize, frameHeight),
+            borderColor,
+        )
         if imageMode == "P":
             sheetRow.putpalette(j2afile.palettesequence)
         for frame_index, frame in enumerate(animation.frames):
@@ -128,24 +149,37 @@ for set_index, set in enumerate(j2afile.sets):
                     borderColor = j2afile.palette[borderColor]
                     borderColor = (borderColor[0], borderColor[1], borderColor[2], 255)
                 else:
-                    borderColor = (0,0,0,0)
+                    borderColor = (0, 0, 0, 0)
                 if unusedColor != 0:
                     unusedColor = j2afile.palette[unusedColor]
                     unusedColor = (unusedColor[0], unusedColor[1], unusedColor[2], 255)
                 else:
-                    unusedColor = (0,0,0,0)
+                    unusedColor = (0, 0, 0, 0)
                 sheetRow = convertPToRGBA(sheetRow, j2afile.palette)
             if borderColor != unusedColor:
                 sheetRow.paste(unusedColor, (xOrg, 0, xOrg + frameWidth, frameHeight))
             sheetRow.paste(
-                j2afile.render_pixelmap(frame) if frame.truecolor else j2afile.render_paletted_pixelmap(frame) if imageMode == "P" else convertPToRGBA(j2afile.render_paletted_pixelmap(frame), j2afile.palette),
-                (
-                    xOrg + maxLeft + frame.origin[0],
-                    maxTop + frame.origin[1]
-                )
+                j2afile.render_pixelmap(frame)
+                if frame.truecolor
+                else j2afile.render_paletted_pixelmap(frame)
+                if imageMode == "P"
+                else convertPToRGBA(
+                    j2afile.render_paletted_pixelmap(frame), j2afile.palette
+                ),
+                (xOrg + maxLeft + frame.origin[0], maxTop + frame.origin[1]),
             )
         if outputStyle == 0:
-            sheetRow.save(pathlib.Path(destination_folder, destination_file_stem + "-" + str(set_index) + "-" + str(animation_index) + ".png"))
+            sheetRow.save(
+                pathlib.Path(
+                    destination_folder,
+                    destination_file_stem
+                    + "-"
+                    + str(set_index)
+                    + "-"
+                    + str(animation_index)
+                    + ".png",
+                )
+            )
             if imageMode == "RGBA":
                 borderColor = borderColorInitial
                 unusedColor = unusedColorInitial
@@ -154,14 +188,32 @@ for set_index, set in enumerate(j2afile.sets):
             sheetRows.append(sheetRow)
 
     if outputStyle != 0 and len(sheetRows) != 0:
-        result = Image.new(imageMode, (max(row.width for row in sheetRows), sum(row.height for row in sheetRows) + (borderSize - 1) * len(sheetRows)), borderColor)
+        result = Image.new(
+            imageMode,
+            (
+                max(row.width for row in sheetRows),
+                sum(row.height for row in sheetRows)
+                + (borderSize - 1) * len(sheetRows),
+            ),
+            borderColor,
+        )
         if imageMode == "P":
             result.putpalette(j2afile.palettesequence)
         yOrg = 0
         for row in sheetRows:
-            result.paste(row if row.mode == result.mode else convertPToRGBA(row, j2afile.palette), (0,yOrg))
+            result.paste(
+                row
+                if row.mode == result.mode
+                else convertPToRGBA(row, j2afile.palette),
+                (0, yOrg),
+            )
             yOrg += row.height + borderSize
-        result.save(pathlib.Path(destination_folder, destination_file_stem + "-" + str(set_index) + ".png"))
+        result.save(
+            pathlib.Path(
+                destination_folder,
+                destination_file_stem + "-" + str(set_index) + ".png",
+            )
+        )
 
     if imageMode == "RGBA":
         borderColor = borderColorInitial

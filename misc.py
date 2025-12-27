@@ -1,9 +1,12 @@
 import re
 import struct
 
+
 class NamedStruct(struct.Struct):
     __slots__ = ["_names"]
-    _fmtvalidate = re.compile(r"^((\d+[sp]|[xcbB?hHiIlLqQnNefd])\|\w+/)*(\d+[sp]|[xcbB?hHiIlLqQnNefd])\|\w+$")
+    _fmtvalidate = re.compile(
+        r"^((\d+[sp]|[xcbB?hHiIlLqQnNefd])\|\w+/)*(\d+[sp]|[xcbB?hHiIlLqQnNefd])\|\w+$"
+    )
 
     def __init__(self, fmt):
         assert NamedStruct._fmtvalidate.match(fmt)
@@ -13,13 +16,13 @@ class NamedStruct(struct.Struct):
 
     def pack(self, **kwargs):
         l = [None] * len(kwargs)
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             l[self._names.index(k)] = v
         return super(NamedStruct, self).pack(*l)
 
     def pack_into(self, buffer, offset, **kwargs):
         l = [None] * len(kwargs)
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             l[self._names.index(k)] = v
         return super(NamedStruct, self).pack_into(buffer, offset, *l)
 
@@ -39,13 +42,13 @@ class NamedStruct(struct.Struct):
             offset += self.size
 
     def iter_pack(self, iterable):
-        return b''.join(self.pack(**d) for d in iterable)
+        return b"".join(self.pack(**d) for d in iterable)
 
 
 def fake_crc(target_crc):
-    target_crc ^= 0xffffffff
+    target_crc ^= 0xFFFFFFFF
     for _ in range(32):
         target_crc <<= 1
         if target_crc & 0x100000000:
-            target_crc ^= 0x1db710641
-    return target_crc ^ 0xffffffff
+            target_crc ^= 0x1DB710641
+    return target_crc ^ 0xFFFFFFFF

@@ -48,11 +48,22 @@ import yaml
 from PIL import Image
 from j2a import J2A
 
-cli = argparse.ArgumentParser(description=readme, prog="J2A Creator", formatter_class=argparse.RawDescriptionHelpFormatter)
-cli.add_argument("folder", help="Folder containing animation frames, one folder per animation")
+cli = argparse.ArgumentParser(
+    description=readme,
+    prog="J2A Creator",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
+cli.add_argument(
+    "folder", help="Folder containing animation frames, one folder per animation"
+)
 cli.add_argument("--output", help="Output file name", default="?")
-cli.add_argument("--yes", "-y", help="Always answer confirmation prompts with 'yes'", default=False,
-                 action="store_true")
+cli.add_argument(
+    "--yes",
+    "-y",
+    help="Always answer confirmation prompts with 'yes'",
+    default=False,
+    action="store_true",
+)
 args = cli.parse_args()
 
 # check and open all relevant files and folders
@@ -65,14 +76,18 @@ if args.output == "?":
     args.output = ".".join(args.folder.rsplit("-", 1))
 output_file = pathlib.Path(args.output)
 
-set_folders = sorted([subfolder for subfolder in source_folder.iterdir() if subfolder.is_dir()])
+set_folders = sorted(
+    [subfolder for subfolder in source_folder.iterdir() if subfolder.is_dir()]
+)
 j2a_file = J2A(str(output_file), empty_set="crop")
 j2a_file.sets = [J2A.Set() for _ in range(len(set_folders))]
 
 # loop through everything and store it
 set_index = 0
 for set_folder in set_folders:
-    animation_folders = sorted([subfolder for subfolder in set_folder.iterdir() if subfolder.is_dir()])
+    animation_folders = sorted(
+        [subfolder for subfolder in set_folder.iterdir() if subfolder.is_dir()]
+    )
     animation_set = j2a_file.sets[set_index]
     animation_set.animations = [J2A.Animation() for _ in range(len(animation_folders))]
     animation_index = 0
@@ -82,13 +97,17 @@ for set_folder in set_folders:
     for animation_folder in animation_folders:
         frame_files = sorted(animation_folder.glob("*.png"))
         if not frame_files:
-            print("No frames found for animation '%s', skipping" % animation_folder.name)
+            print(
+                "No frames found for animation '%s', skipping" % animation_folder.name
+            )
             continue
 
         settings_file = list(animation_folder.glob("*.settings"))
         if len(settings_file) != 1:
-            print("Need exactly one *.fps file for animation %s, %i found, skipping" % (
-                animation_folder.name, len(settings_file)))
+            print(
+                "Need exactly one *.fps file for animation %s, %i found, skipping"
+                % (animation_folder.name, len(settings_file))
+            )
             continue
 
         settings_file = settings_file[0]
@@ -98,10 +117,15 @@ for set_folder in set_folders:
         # require at least a 'default' dictionary with all keys, if not we
         # can't properly store the data
         required_settings = {"origin", "coldspot", "gunspot", "tagged", "fps"}
-        if "default" not in settings or type(settings["default"]) != dict or set(
-                settings["default"].keys()) & required_settings != required_settings:
+        if (
+            "default" not in settings
+            or type(settings["default"]) != dict
+            or set(settings["default"].keys()) & required_settings != required_settings
+        ):
             print(
-                "Settings file for animation %s does not define all required properties, skipping" % animation_folder.name)
+                "Settings file for animation %s does not define all required properties, skipping"
+                % animation_folder.name
+            )
             continue
 
         print("Importing animation '%s'" % animation_folder.name)
@@ -113,8 +137,10 @@ for set_folder in set_folders:
             if image.mode == "RGB":
                 image = image.convert("RGBA")
             if image.mode != "P" and image.mode != "L" and image.mode != "RGBA":
-                print("Frame image %s for animation %s is neither Paletted, Grayscale, nor RGB(A), skipping" % (
-                    frame_file.name, animation_folder.name))
+                print(
+                    "Frame image %s for animation %s is neither Paletted, Grayscale, nor RGB(A), skipping"
+                    % (frame_file.name, animation_folder.name)
+                )
                 continue
 
             # read the settings from default, unless they have been defined for
@@ -122,11 +148,34 @@ for set_folder in set_folders:
             frame_settings = settings.get(frame_file.stem, settings["default"])
             frame = J2A.Frame(
                 pixmap=image,
-                origin=tuple([int(x) for x in frame_settings.get("origin", settings["default"]["origin"]).split(",")]),
-                coldspot=tuple([int(x) for x in frame_settings.get("coldspot", settings["default"]["coldspot"]).split(",")]),
-                gunspot=tuple([int(x) for x in frame_settings.get("gunspot", settings["default"]["gunspot"]).split(",")]),
-                tagged=bool(frame_settings.get("tagged", settings["default"]["tagged"])),
-                truecolor=image.mode == "RGBA"
+                origin=tuple(
+                    [
+                        int(x)
+                        for x in frame_settings.get(
+                            "origin", settings["default"]["origin"]
+                        ).split(",")
+                    ]
+                ),
+                coldspot=tuple(
+                    [
+                        int(x)
+                        for x in frame_settings.get(
+                            "coldspot", settings["default"]["coldspot"]
+                        ).split(",")
+                    ]
+                ),
+                gunspot=tuple(
+                    [
+                        int(x)
+                        for x in frame_settings.get(
+                            "gunspot", settings["default"]["gunspot"]
+                        ).split(",")
+                    ]
+                ),
+                tagged=bool(
+                    frame_settings.get("tagged", settings["default"]["tagged"])
+                ),
+                truecolor=image.mode == "RGBA",
             )
             frame.autogenerate_mask()
 

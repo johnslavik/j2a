@@ -27,12 +27,22 @@ import os
 
 from j2a import J2A
 
-cli = argparse.ArgumentParser(description=readme, prog="J2A Unpacker", formatter_class=argparse.RawDescriptionHelpFormatter)
-cli.add_argument("--palettefile", "-p", default="Diamondus_2.pal", help="Palette file to use")
+cli = argparse.ArgumentParser(
+    description=readme,
+    prog="J2A Unpacker",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
+cli.add_argument(
+    "--palettefile", "-p", default="Diamondus_2.pal", help="Palette file to use"
+)
 cli.add_argument("j2afile", help="The J2A file to extract")
-cli.add_argument("--folder", "-f", default="?",
-                 help="Where to extract the animation data. Defaults to current working directory.")
-cli.add_argument('--melk', '-m', action='store_true')
+cli.add_argument(
+    "--folder",
+    "-f",
+    default="?",
+    help="Where to extract the animation data. Defaults to current working directory.",
+)
+cli.add_argument("--melk", "-m", action="store_true")
 args = cli.parse_args()
 
 # check if all files we need exist and can be opened properly
@@ -54,7 +64,7 @@ except Exception:
     exit(1)
 
 if args.melk:
-    j2afile.get_palette() #don't overwrite palettesequence later
+    j2afile.get_palette()  # don't overwrite palettesequence later
 
 # loop through all animations and unpack their frames
 for set_index, set in enumerate(j2afile.sets):
@@ -65,28 +75,41 @@ for set_index, set in enumerate(j2afile.sets):
 
     if args.melk:
         noalphas = list(set._palette)
-        del noalphas[3::4] #remove every fourth byte
-        j2afile.palettesequence = noalphas #RGBRGBRGB, which is what Pillow wants, instead of RGBARGBARGBA, which is what is stored in the .j2a
+        del noalphas[3::4]  # remove every fourth byte
+        j2afile.palettesequence = noalphas  # RGBRGBRGB, which is what Pillow wants, instead of RGBARGBARGBA, which is what is stored in the .j2a
 
     for animation_index, animation in enumerate(set.animations):
         print("Unpacking animation %i..." % animation_index)
-        animation_folder = set_folder.joinpath("animation-%s" % str(animation_index).zfill(3))
+        animation_folder = set_folder.joinpath(
+            "animation-%s" % str(animation_index).zfill(3)
+        )
         if not animation_folder.exists():
             os.makedirs(animation_folder)
 
         settings_file = animation_folder.joinpath("animation.settings")
         settings = {
-            "default": {"origin": "0,0", "coldspot": "0,0", "gunspot": "0,0", "tagged": 0, "fps": animation.fps}}
+            "default": {
+                "origin": "0,0",
+                "coldspot": "0,0",
+                "gunspot": "0,0",
+                "tagged": 0,
+                "fps": animation.fps,
+            }
+        }
 
         for frame_index, frame in enumerate(animation.frames):
-            frame_file = animation_folder.joinpath("frame-%s.png" % str(frame_index).zfill(3))
+            frame_file = animation_folder.joinpath(
+                "frame-%s.png" % str(frame_index).zfill(3)
+            )
             frame_name = frame_file.stem
 
             settings[frame_name] = {
                 "origin": ",".join([str(coordinate) for coordinate in frame.origin]),
-                "coldspot": ",".join([str(coordinate) for coordinate in frame.coldspot]),
+                "coldspot": ",".join(
+                    [str(coordinate) for coordinate in frame.coldspot]
+                ),
                 "gunspot": ",".join([str(coordinate) for coordinate in frame.gunspot]),
-                "tagged": {False: 0, True: 1}[frame.tagged]
+                "tagged": {False: 0, True: 1}[frame.tagged],
             }
 
             j2afile.render_bitdepth_appropriate_pixelmap(frame).save(str(frame_file))
