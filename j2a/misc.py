@@ -12,26 +12,26 @@ class NamedStruct(struct.Struct):
         assert NamedStruct._fmtvalidate.match(fmt)
         pairs = [it.split("|", 1) for it in fmt.split("/")]
         self._names = tuple(p[1] for p in pairs)
-        super(NamedStruct, self).__init__("<" + "".join(p[0] for p in pairs))
+        super().__init__("<" + "".join(p[0] for p in pairs))
 
     def pack(self, **kwargs):
         l = [None] * len(kwargs)
         for k, v in kwargs.items():
             l[self._names.index(k)] = v
-        return super(NamedStruct, self).pack(*l)
+        return super().pack(*l)
 
     def pack_into(self, buffer, offset, **kwargs):
         l = [None] * len(kwargs)
         for k, v in kwargs.items():
             l[self._names.index(k)] = v
-        return super(NamedStruct, self).pack_into(buffer, offset, *l)
+        return super().pack_into(buffer, offset, *l)
 
     def unpack(self, *pargs, **kwargs):
-        up = super(NamedStruct, self).unpack(*pargs, **kwargs)
+        up = super().unpack(*pargs, **kwargs)
         return dict(zip(self._names, up))
 
     def unpack_from(self, *pargs, **kwargs):
-        up = super(NamedStruct, self).unpack_from(*pargs, **kwargs)
+        up = super().unpack_from(*pargs, **kwargs)
         return dict(zip(self._names, up))
 
     def iter_unpack(self, buffer, *pargs, **kwargs):

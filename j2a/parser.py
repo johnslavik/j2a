@@ -3,7 +3,6 @@
 # thanks to neobeo/j2nsm for the file format specs
 # see http://www.jazz2online.com
 
-from __future__ import print_function
 import itertools
 import struct
 import sys
@@ -14,11 +13,7 @@ from PIL import Image
 
 import j2a.misc as misc
 
-if sys.version_info[0] < 3:
-    zip = itertools.izip
-    as_compressible = lambda x: bytes(x)
-else:
-    as_compressible = lambda x: x
+as_compressible = lambda x: x
 
 
 # From the official Python docs
@@ -72,7 +67,7 @@ class J2A:
     class J2APackingError(Exception):
         pass
 
-    class Set(object):
+    class Set:
         __slots__ = [
             "_chunks",
             "_samplecount",
@@ -346,7 +341,7 @@ class J2A:
                 self.unpack()
             self._samples = value
 
-    class Animation(object):
+    class Animation:
         __slots__ = ["frames", "fps"]
         _Header = misc.NamedStruct("H|framecount/H|fps/l|reserved")
 
@@ -355,7 +350,7 @@ class J2A:
                 frames = []
             self.frames, self.fps = frames, fps
 
-    class Frame(object):
+    class Frame:
         __slots__ = [
             "shape",
             "origin",
@@ -414,8 +409,8 @@ class J2A:
                 self._pixmap = pixmap
 
         def _get_header(self, img_offset, mask_offset):
-            return dict(
-                (k, v)
+            return {
+                k: v
                 for k, v in zip(
                     J2A.Frame._Header._names,
                     self.shape
@@ -424,7 +419,7 @@ class J2A:
                     + self.gunspot
                     + (img_offset, mask_offset),
                 )
-            )
+            }
 
         @staticmethod
         def read(frameinfo, imagedata, maskdata):
@@ -562,7 +557,7 @@ class J2A:
             self.mask = mask
             return self
 
-    class Sample(object):
+    class Sample:
         __slots__ = ["_data", "_rate", "volume", "_bits", "_channels", "loop"]
         _Header = misc.NamedStruct(
             "L|total_size/4s|riff_id/L|riff_size/4s|format/4s|sc_id/L|sc_size/L|reserved1_size/32s|reserved1/H|unknown1/h|volume/H|flags/H|unknown2/L|nsamples/L|loop_start/L|loop_end/L|sample_rate/L|has_appendix/L|reserved2"
@@ -873,10 +868,10 @@ class J2A:
 def main():
     from sys import argv
 
-    filename = argv[1] if (len(argv) >= 2) else "C:\Games\Jazz2\Anims.j2a"
+    filename = argv[1] if (len(argv) >= 2) else r"C:\Games\Jazz2\Anims.j2a"
     try:
         j2a = J2A(filename)
-    except IOError:
+    except OSError:
         print("File %s could not be read!" % filename, file=sys.stderr)
         return 1
 
