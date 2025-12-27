@@ -25,7 +25,7 @@ import pathlib
 import yaml
 import os
 
-from j2a import J2A
+from j2a.parser import J2A
 
 cli = argparse.ArgumentParser(
     description=readme,

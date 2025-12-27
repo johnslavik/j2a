@@ -43,10 +43,11 @@ alphabetically). File and folder names can be arbitrary.
 
 import argparse
 import pathlib
-import yaml
 
+import yaml
 from PIL import Image
-from j2a import J2A
+
+from j2a.parser import J2A
 
 cli = argparse.ArgumentParser(
     description=readme,

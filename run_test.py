@@ -1,12 +1,13 @@
 from __future__ import print_function
-import os
-import sys
-import struct
+
 import itertools
+import os
+import struct
+import sys
 import zlib
 from types import FunctionType
 
-from j2a import J2A
+from j2a.parser import J2A
 
 if sys.version_info[0] <= 2:
     input = raw_input
@@ -121,8 +122,8 @@ def show_frame(set_num, anim_num, frame_num):
 
 
 def show_anim(set_num, anim_num):
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
     from matplotlib.animation import ArtistAnimation
 
     anims = _read_hdr()
@@ -271,8 +272,9 @@ def full_cycle_test():
 
 
 def _random_pixmap(seed=None, width=260, height=80):
-    import numpy as np
     import random
+
+    import numpy as np
 
     random.seed(seed)
 
@@ -324,7 +326,7 @@ def mask_autogen_test(times=1):
             for bit, pix in zip(bit_iter(mask), itertools.chain(*pixmap)):
                 assert bit == bool(pix)
             assert mask[-1] >> (1 + ((width * height - 1) & 7)) == 0
-    except AssertionError as e:
+    except AssertionError:
         print(width, height)
         print(pixmap)
         print(mask.hex())
@@ -380,7 +382,6 @@ def _encoding_strip(frame):
 
 def gen_bigimage(filename):
     import more_itertools
-    from PIL import Image
 
     anims = _read_hdr()
     global_width = 0
@@ -469,7 +470,7 @@ if __name__ == "__main__":
         if isinstance(v, FunctionType) and not k.startswith("_")
     )
 
-    assert int(True) is 1
+    assert int(True) == 1
     isint = lambda x: x[int(x[:1] in "+-") :].isdigit()
 
     anims_path = None

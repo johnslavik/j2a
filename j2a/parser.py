@@ -6,15 +6,13 @@
 from __future__ import print_function
 import itertools
 import struct
-import os
 import sys
 import zlib
-import array
 
 # needs python image library, http://www.pythonware.com/library/pil/
 from PIL import Image
 
-import misc
+import j2a.misc as misc
 
 if sys.version_info[0] < 3:
     zip = itertools.izip
@@ -395,8 +393,8 @@ class J2A:
                 self.tagged,
                 self.truecolor,
             ) = shape, origin, coldspot, gunspot, mask, tagged, truecolor
-            if not rle_encoded_pixmap is None:
-                assert not shape is None
+            if rle_encoded_pixmap is not None:
+                assert shape is not None
                 self._rle_encoded_pixmap = bytearray(rle_encoded_pixmap)
             elif isinstance(pixmap, Image.Image):
                 assert shape is None or shape == pixmap.size
@@ -584,7 +582,7 @@ class J2A:
         def __init__(
             self, data, sample_rate=None, volume=None, bits=8, channels=1, loop=None
         ):
-            assert not sample_rate is None and not volume is None
+            assert sample_rate is not None and volume is not None
             assert isinstance(data, (bytes, bytearray))
             (
                 self._data,
@@ -659,7 +657,7 @@ class J2A:
                 volume=self.volume,
                 sc_size=datalen + 0x44,
                 flags=0x4 * (self._bits == 16)
-                + 0x8 * (not self.loop is None)
+                + 0x8 * (self.loop is not None)
                 + 0x10 * loop[2]
                 + 0x40 * (self._channels == 2),
                 nsamples=nsamples,
@@ -774,7 +772,7 @@ class J2A:
         crc &= 0xFFFFFFFF
 
         extra_data = b""
-        if not self.config["fake_size_and_crc"] is None:
+        if self.config["fake_size_and_crc"] is not None:
             target_filesize, target_crc = self.config["fake_size_and_crc"]
             target_crc &= 0xFFFFFFFF
             if (cur_offset, crc) != (target_filesize, target_crc):

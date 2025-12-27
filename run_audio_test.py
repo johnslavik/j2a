@@ -4,8 +4,8 @@ import sys
 import struct
 from types import FunctionType
 
-from j2a import J2A
-import misc
+from j2a.parser import J2A
+import j2a.misc as misc
 
 if sys.version_info[0] <= 2:
     input = raw_input
@@ -298,7 +298,7 @@ if __name__ == "__main__":
         if isinstance(v, FunctionType) and not k.startswith("_")
     )
 
-    assert int(True) is 1
+    assert int(True) == 1
     isint = lambda x: x[int(x[:1] in "+-") :].isdigit()
 
     anims_path = None

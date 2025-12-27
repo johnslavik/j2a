@@ -7,12 +7,12 @@ Existing files will be overwritten.
 """
 
 import argparse
-import pathlib
-import yaml
 import os
+import pathlib
 
-from j2a import J2A
 from PIL import Image
+
+from j2a.parser import J2A
 
 cli = argparse.ArgumentParser(
     description=readme,
