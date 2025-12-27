@@ -1,14 +1,10 @@
-from __future__ import print_function
 import os
-import sys
 import struct
+import sys
 from types import FunctionType
 
-from j2a.parser import J2A
 import j2a.misc as misc
-
-if sys.version_info[0] <= 2:
-    input = raw_input
+from j2a.parser import J2A
 
 
 def _read_hdr():
@@ -20,7 +16,7 @@ def _read_hdr():
         return J2A(anims_path).read()
 
 
-class RIFFChunk(object):
+class RIFFChunk:
     _Header = struct.Struct("<4sL")
 
     def __init__(self, name, data, slack=None, staticdata=b""):
@@ -78,7 +74,7 @@ def test_RIFF(filename):
 
     def dump_chunks(chunk, indent=0):
         print(
-            "{0}Chunk '{1}': {2} subchunks, sdata {3}, slack of length {4}; slack: {5}".format(
+            "{}Chunk '{}': {} subchunks, sdata {}, slack of length {}; slack: {}".format(
                 "\t" * indent,
                 chunk.name.decode(),
                 len(chunk.subchunks),
@@ -124,11 +120,11 @@ def dump_samples(folder):
         os.makedirs(folder)
 
     for set_num, s in enumerate(anims.sets):
-        set_folder = "{0}/{1:03}".format(folder, set_num)
+        set_folder = f"{folder}/{set_num:03}"
         if not os.path.exists(set_folder):
             os.mkdir(set_folder)
         for sample_num, sample in enumerate(s.samples):
-            with wave.open("{0}/{1:03}.wav".format(set_folder, sample_num), "wb") as w:
+            with wave.open(f"{set_folder}/{sample_num:03}.wav", "wb") as w:
                 w.setparams(
                     (
                         sample._channels,
@@ -142,7 +138,7 @@ def dump_samples(folder):
                 w.writeframes(bytes(b ^ 0x80 for b in sample._data))
 
 
-class PyAudioSoundPlayer(object):
+class PyAudioSoundPlayer:
     def __init__(self):
         import pyaudio
 
@@ -292,11 +288,11 @@ def dump_samples_data_slice(filename, start=0, size=0x20):
 #############################################################################################################
 
 if __name__ == "__main__":
-    fmap = dict(
-        (k, v)
+    fmap = {
+        k: v
         for k, v in globals().items()
         if isinstance(v, FunctionType) and not k.startswith("_")
-    )
+    }
 
     assert int(True) == 1
     isint = lambda x: x[int(x[:1] in "+-") :].isdigit()
@@ -312,7 +308,7 @@ if __name__ == "__main__":
             fargs.append(arg)
     anims_path = anims_path or os.path.join(os.path.dirname(sys.argv[0]), "Anims.j2a")
 
-    print("Calling {0} with arguments: {1}".format(sys.argv[1], fargs))
+    print(f"Calling {sys.argv[1]} with arguments: {fargs}")
     retval = fmap[sys.argv[1]](*fargs)
     if isinstance(retval, int):
         sys.exit(retval)

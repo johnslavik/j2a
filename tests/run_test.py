@@ -1,5 +1,4 @@
-from __future__ import print_function
-
+import builtins
 import itertools
 import os
 import struct
@@ -8,20 +7,6 @@ import zlib
 from types import FunctionType
 
 from j2a.parser import J2A
-
-if sys.version_info[0] <= 2:
-    input = raw_input
-    if isinstance(__builtins__, dict):  # Needed for cProfile with Python 2
-
-        class BuiltinsWrapper(object):
-            __getattr__ = __builtins__.__getitem__
-            __setattr__ = __builtins__.__setitem__
-
-        builtins = BuiltinsWrapper()
-    else:
-        builtins = __builtins__
-else:
-    import builtins
 
 
 def _read_hdr():
@@ -160,12 +145,12 @@ def show_anim(set_num, anim_num):
 def print_j2a_stats():
     anims = _read_hdr()
     print("Jazz Jackrabbit 2 animations file")
-    print("\tsetcount: {0}".format(len(anims.sets)))
+    print(f"\tsetcount: {len(anims.sets)}")
     for i, s in enumerate(anims.sets):
-        print("\tSet {0}:".format(i))
-        print("\t\tanimcount: {0}".format(len(s.animations)))
-        print("\t\tsamplecount: {0}".format(s._samplecount))
-        print("\t\tframecount: {0}".format(sum(len(a.frames) for a in s.animations)))
+        print(f"\tSet {i}:")
+        print(f"\t\tanimcount: {len(s.animations)}")
+        print(f"\t\tsamplecount: {s._samplecount}")
+        print(f"\t\tframecount: {sum(len(a.frames) for a in s.animations)}")
 
 
 def generate_compmethod_stats(filename, starting_set=0):
@@ -454,7 +439,7 @@ def profile_func(funcname, mode, *pargs):
             curtime = time()
         else:
             print(
-                "Running for {0:.3f} s, {1} iterations".format(
+                "Running for {:.3f} s, {} iterations".format(
                     curtime - startingtime, i
                 )
             )
@@ -464,11 +449,11 @@ def profile_func(funcname, mode, *pargs):
 #############################################################################################################
 
 if __name__ == "__main__":
-    fmap = dict(
-        (k, v)
+    fmap = {
+        k: v
         for k, v in globals().items()
         if isinstance(v, FunctionType) and not k.startswith("_")
-    )
+    }
 
     assert int(True) == 1
     isint = lambda x: x[int(x[:1] in "+-") :].isdigit()
@@ -484,7 +469,7 @@ if __name__ == "__main__":
             fargs.append(arg)
     anims_path = anims_path or os.path.join(os.path.dirname(sys.argv[0]), "Anims.j2a")
 
-    print("Calling {0} with arguments: {1}".format(sys.argv[1], fargs))
+    print(f"Calling {sys.argv[1]} with arguments: {fargs}")
     retval = fmap[sys.argv[1]](*fargs)
     if isinstance(retval, int):
         sys.exit(retval)
