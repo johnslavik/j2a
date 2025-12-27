@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "j2a"
+dynamic = ["version"]
+description = "Ancient J2A tools that magically work"
+readme = "README.md"
+authors = [
+    { name = "Stijn Peeters", email = "git@stijnpeeters.nl" },
+    { name = "VioletCLM", email = "violetclm@gmail.com" },
+    { name = "FOTMarut", email = "diego@axx.it" },
+]
+requires-python = ">=3.13"
+dependencies = ["pillow>=12.0.0", "pyyaml>=6.0.3"]
+
+[dependency-groups]
+dev = ["mypy>=1.13.0", "pre-commit>=4.2.0", "ruff>=0.11.8"]
+
+[tool.hatch.version]
+source = "vcs"
